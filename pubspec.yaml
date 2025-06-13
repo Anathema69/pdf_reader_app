@@ -1,0 +1,46 @@
+name: pdf_reader_app
+description: "A new Flutter project."
+
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.8.1
+
+# Dependencies specify other packages that your package needs in order to work.
+# To automatically upgrade your package dependencies to the latest versions
+# consider running `flutter pub upgrade --major-versions`. Alternatively,
+# dependencies can be manually updated by changing the version numbers below to
+# the latest version available on pub.dev. To see which dependencies have newer
+# versions available, run `flutter pub outdated`.
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Para leer/extraer texto y páginas de un PDF
+  pdf_render: ^1.4.7
+  syncfusion_flutter_pdf: ^20.3.49
+  pdfx: ^2.9.1
+
+  # Para decodificar QR de una imagen
+  qr_code_tools: ^0.2.0
+  # Para manejo de imágenes
+  image: ^4.0.0
+  # Para cifrado y verificación de firmas
+  pointycastle: ^3.4.0
+  # Para aislar procesamiento intensivo (background)
+  flutter_isolate: ^2.0.0
+
+  # Para seleccionar el PDF
+  file_picker: ^5.0.0
+
+
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^5.0.0
+flutter:
+  uses-material-design: true
