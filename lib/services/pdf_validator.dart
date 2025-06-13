@@ -1,43 +1,52 @@
 // lib/services/pdf_validator.dart
 
 import 'dart:io';
+import 'dart:typed_data';
+
 import '../services/pdf_extractor.dart';
 import '../services/qr_decoder.dart';
 import '../services/signer.dart';
 import '../models/validation_result.dart';
 
 class PdfValidator {
-  /// Recibe un [pdfFile], extrae texto, decodifica QRs y verifica la firma.
-  /// Retorna un [ValidationResult] con el JSON listo para usar.
-  static Future<ValidationResult> validatePdf(File pdfFile) async {
-    // 1) Extraer texto de cada página
-    final pages = await PdfExtractor.extractTextByPage(pdfFile);
+  /// Valida localmente un PDF (texto, QR y firma) y devuelve el resultado.
+  static Future<ValidationResult> validatePdf({
+    Uint8List? fileBytes,
+    String? filePath,
+  }) async {
+    // 1) Texto por página
+    final pages = await PdfExtractor.extractTextByPage(
+      fileBytes: fileBytes,
+      filePath: filePath,
+    );
     final int numPages = pages.length;
 
-    // 2) Renderizar cada página, decodificar QR y acumular los datos
+    // 2) QR por página
     final List<String> qrCodes = [];
     for (var i = 0; i < numPages; i++) {
-      final imageBytes = await PdfExtractor.pageToImage(pdfFile, i);
+      final imageBytes = await PdfExtractor.pageToImage(
+        fileBytes: fileBytes,
+        filePath: filePath,
+        pageIndex: i,
+      );
       final qr = await QrDecoder.decodeFromBytes(imageBytes);
-      if (qr != null && qr.isNotEmpty) {
-        qrCodes.add(qr);
-      }
+      if (qr != null && qr.isNotEmpty) qrCodes.add(qr);
     }
 
-    // 3) Extraer el sello (firma) del texto completo
-    final String fullText = pages.join('\n');
-    final String seal = Signer.extractSeal(fullText);
-
-    // 4) Verificar la firma contra la cadena original
+    // 3) Firma
+    final fullText = pages.join('\n');
+    final seal = Signer.extractSeal(fullText);
     final bool signatureValid = await Signer.verify(fullText, seal);
 
-    // 5) Construir y devolver el resultado
+    // 4) Construir resultado
     return ValidationResult(
-      filename: pdfFile.path.split(Platform.pathSeparator).last,
+      filename: filePath != null
+          ? filePath.split(Platform.pathSeparator).last
+          : 'document.pdf',
       numPages: numPages,
       qrCodes: qrCodes,
       signatureValid: signatureValid,
-      seal: seal, // Si tu modelo lo admite; si no, puedes omitirlo
+      seal: seal,
     );
   }
 }
